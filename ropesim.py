@@ -3,6 +3,7 @@ sys.path.append('..')
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
+from scipy.integrate import ode
 from mpl_toolkits.mplot3d import Axes3D
 import time
 import math
@@ -19,7 +20,7 @@ import datetime
 
 plt.close('all')
 
-numlinks = 100
+numlinks = 10
 length = .03 #m
 mass = .3 #kg
 g = 9.8 #m/s**2
@@ -73,26 +74,23 @@ def propagate(t,state,k,length,mass,g):
     
     return dlinks
 
-solver = scipy.integrate.ode(propagate)
+solver = ode(propagate)
 solver.set_integrator('lsoda',atol = 10**-4)
 solver.set_initial_value(state,0)
 solver.set_f_params(k,length,mass,g)
 
 tf = 20
 dt = 1/60
-steps = int(tf/dt)
-step = 0
 
 newstate = []
 t = []
-t0 = time.clock()
-while solver.successful() and step < steps:
+#t0 = time.clock()
+while solver.successful() and solver.t < tf:
     solver.integrate(solver.t+dt)
     newstate.append(solver.y)
     t.append(solver.t)
-    step += 1
-t1 = time.clock()
-print('Integration time: '+str(t1-t0)+' s')
+#t1 = time.clock()
+#print('Integration time: '+str(t1-t0)+' s')
 
 newstate = np.vstack(newstate)
 t = np.vstack(t)
@@ -111,8 +109,8 @@ def update_line(num, jointsx,jointsy, line):
 
 fig1 = plt.figure()
 plt.axis('square')
-plt.xlim(-4,4)
-plt.ylim(-4,4)
+plt.xlim(-.5,.5)
+plt.ylim(-.5,.5)
 l, = plt.plot([], [], 'r-')
 line_ani = FuncAnimation(fig1, update_line, len(newstate), fargs=(jointsx,jointsy, l),
                                    interval=60, blit=True)
